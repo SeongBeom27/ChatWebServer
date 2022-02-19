@@ -69,6 +69,29 @@
 
           socket.emit('login', output)
         })
+
+        // 로그아웃 버튼 클릭 시 처리
+        $('#logoutButton').bind('click', function (event) {
+          var id = $('#idInput').val()
+          var password = $('#passwordInput').val()
+          var alias = $('#aliasInput').val()
+          var today = $('#todayInput').val()
+
+          var output = {
+            id: id,
+            password: password,
+            alias: alias,
+            today: today,
+          }
+          console.log('서버로 보낼 데이터 : ' + JSON.stringify(output))
+
+          if (socket == undefined) {
+            alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.')
+            return
+          }
+
+          socket.emit('logout', output)
+        })
       })
 
       // 서버에 연결하는 함수 정의
