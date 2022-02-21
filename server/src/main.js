@@ -39,7 +39,6 @@ io.on('connection', (socket) => {
   // 'message' 이벤트를 받았을 때의 처리
   socket.on('message', function (message) {
     console.log('message 이벤트를 받았습니다.');
-    console.dir(message);
 
     if (message.recepient == 'ALL') {
       // 나를 제외한 모든 클라이언트에게 메시지 전달
@@ -62,6 +61,7 @@ io.on('connection', (socket) => {
       } else if (message.command == 'groupchat') {
         console.log('group chat ');
 
+        io.sockets.in(message.roomId).emit('message', message);
         // io.sockets.in(message.recepient).emit('message', message);
         // ...
 
@@ -82,51 +82,28 @@ io.on('connection', (socket) => {
     if (room.command == 'create') {
       console.log('create room : ', room);
 
-      // 방 Join
-      // ...
+      // 방 Create
+      // join : 방이 없을 경우 만들고 참여, 방이 있을 경우 참여
+      socket.join(room.roomId);
 
-      sendResponse(socket, 'room', '200', '방 생성');
-    } else if (room.command == 'update') {
-      console.log('update before : ', room);
-
-      // 방 Update
-      // ...
-
-      console.log('update after : ', curRoom);
-
-      // 응답 메시지 전송
-      sendResponse(socket, 'room', '200', '방 이름을 변경');
-    } else if (room.command == 'delete') {
-      console.log('delete room : ', room);
-
-      // 방 Delete
-      // ...
-
-      sendResponse(socket, 'room', '200', '방 삭제');
+      sendResponse(socket, 'room', '200', '새로운 방에 입장했습니다.');
     } else if (room.command == 'join') {
       console.log('join room : ', room);
 
       // 방 Join
-      // ...
+      socket.join(room.roomId);
 
       // 응답 메시지 전송
-      sendResponse(socket, 'room', '200', '방에 입장했습니다.');
+      sendResponse(socket, 'room', '200', '기존 방에 입장했습니다.');
     } else if (room.command == 'leave') {
       console.log('leave room : ', room);
 
       // 방 Leave
-      // ...
+      socket.leave(room.roomId);
 
       // 응답 메시지 전송
       sendResponse(socket, 'room', '200', '방에서 나갔습니다.');
     }
-
-    // let roomList = getRoomList();
-
-    // let output = { command: 'list', rooms: roomList };
-    // console.log('클라이언트로 보낼 데이터 : ' + JSON.stringify(output));
-
-    // io.sockets.emit('room', output);
   });
 
   socket.on('logout', (logout) => {
