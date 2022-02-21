@@ -48,25 +48,103 @@ io.on('connection', (socket) => {
       );
       socket.broadcast.emit('message', message);
     } else {
-      // 일대일 채팅 대상에게 메시지 전달
-      if (login_ids[message.recepient]) {
-        // 연결되어있는 소켓들 중에 존재하는 socket id 대상의 socket을 가져와서 emit을 통하여 송신
-        socket.broadcast
-          .to(login_ids[message.recepient])
-          .emit('message', message);
+      // commnad 속성으로 1:1 채팅과 그룹 채팅 구별
+      if (message.command == 'chat') {
+        if (login_ids[message.recepient]) {
+          // 연결되어있는 소켓들 중에 존재하는 socket id 대상의 socket을 가져와서 emit을 통하여 송신
+          socket.broadcast
+            .to(login_ids[message.recepient])
+            .emit('message', message);
 
-        // 응답 메시지 전송
-        sendResponse(socket, 'message', '200', '메시지를 전송했습니다.');
-      } else {
+          // 응답 메시지 전송
+          sendResponse(socket, 'message', '200', '메시지를 전송했습니다.');
+        }
+      } else if (message.command == 'groupchat') {
+        console.log('group chat ');
+
+        // io.sockets.in(message.recepient).emit('message', message);
+        // ...
+
         // 응답 메시지 전송
         sendResponse(
           socket,
-          'login',
-          '404',
-          '상대방의 로그인 ID를 찾을 수 없습니다.',
+          'message',
+          '200',
+          '방 [' +
+            message.recepient +
+            '의 모든 사용자들에게 메시지를 전송했습니다',
         );
       }
     }
+  });
+
+  socket.on('room', (room) => {
+    if (room.command == 'create') {
+      console.log('create room : ', room);
+
+      // 방 Join
+      // ...
+
+      sendResponse(socket, 'room', '200', '방 생성');
+    } else if (room.command == 'update') {
+      console.log('update before : ', room);
+
+      // 방 Update
+      // ...
+
+      console.log('update after : ', curRoom);
+
+      // 응답 메시지 전송
+      sendResponse(socket, 'room', '200', '방 이름을 변경');
+    } else if (room.command == 'delete') {
+      console.log('delete room : ', room);
+
+      // 방 Delete
+      // ...
+
+      sendResponse(socket, 'room', '200', '방 삭제');
+    } else if (room.command == 'join') {
+      console.log('join room : ', room);
+
+      // 방 Join
+      // ...
+
+      // 응답 메시지 전송
+      sendResponse(socket, 'room', '200', '방에 입장했습니다.');
+    } else if (room.command == 'leave') {
+      console.log('leave room : ', room);
+
+      // 방 Leave
+      // ...
+
+      // 응답 메시지 전송
+      sendResponse(socket, 'room', '200', '방에서 나갔습니다.');
+    }
+
+    // let roomList = getRoomList();
+
+    // let output = { command: 'list', rooms: roomList };
+    // console.log('클라이언트로 보낼 데이터 : ' + JSON.stringify(output));
+
+    // io.sockets.emit('room', output);
+  });
+
+  socket.on('logout', (logout) => {
+    console.log('logout 이벤트를 받았습니다.');
+    console.dir(logout);
+
+    // 연결 종료
+    socket.disconnect();
+
+    // 기존 클라이언트 ID가 없으면 클라이언트 ID를 맵에 추가
+    delete login_ids[logout.id];
+
+    console.log(
+      '접속한 클라이언트 ID 갯수 : %d',
+      Object.keys(login_ids).length,
+    );
+    // 응답 메시지 전송
+    sendResponse(socket, 'logout', '200', '로그아웃 되었습니다.');
   });
 });
 
