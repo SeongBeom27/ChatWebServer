@@ -61,9 +61,8 @@ io.on('connection', (socket) => {
       } else if (message.command == 'groupchat') {
         console.log('group chat ');
 
+        // 모든 namespace ('/') 내 roomId에 해당하는 room에 message를 송신
         io.sockets.in(message.roomId).emit('message', message);
-        // io.sockets.in(message.recepient).emit('message', message);
-        // ...
 
         // 응답 메시지 전송
         sendResponse(
